@@ -1,0 +1,16 @@
+{
+  "name": "nicholascc.github.io",
+  "version": "1.0.0",
+  "description": "Nicholas Charette's website",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node src/index.js",
+    "watch": "node src/index.js watch",
+    "serve": "http-server site"
+  },
+  "author": "Nicholas Charette (2020)",
+  "license": "MIT",
+  "dependencies": {
+    "http-server": "^0.12.1"
+  }
+}
