@@ -1,7 +1,8 @@
 {
-  "name": "nicholascc.github.io",
+  "name": "simple-static-site-generator",
   "version": "1.0.0",
-  "description": "Nicholas Charette's website",
+  "description": "A simple static site generator with a very simple template DSL.",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "node src/index.js",
