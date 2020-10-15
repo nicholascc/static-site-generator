@@ -1,4 +1,4 @@
-const fs = require('fs');
+const fs = require('fs-extra')
 const path = require('path');
 
 const println = console.log;
@@ -45,11 +45,17 @@ function updateSite() {
 
         if(statement.evaluateTemplateCode) {
           data = parseFile(data, statement);
+          try {
+            fs.ensureDirSync(path.dirname(statement.outPath));
+            fs.writeFileSync(statement.outPath, data);
+          } catch (error) {
+            err(error);
+          }
         } else {
           //println("Skipping evaluating template code in file", statement.inPath);
+          fs.copyFile(statement.inPath, statement.outPath);
         }
 
-        fs.writeFileSync(statement.outPath, data);
       });
     });
 
@@ -133,9 +139,14 @@ function parseFile(data, evaluateTemplateCode, slots={}) {
 updateSite();
 
 if(process.argv[2] == "watch") {
-  fs.watch(descPath, {
-    recursive: true
-  }, (event, trigger) => {
-    updateSite();
-  });
+
+    fs.watch(descPath, {
+      recursive: true
+    }, (event, trigger) => {
+      try {
+        updateSite();
+      } catch (error) {
+        println(error);
+      }
+    });
 }
