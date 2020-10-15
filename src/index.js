@@ -1,7 +1,9 @@
 const fs = require('fs-extra')
 const path = require('path');
+const chalk = require('chalk');
 
 const println = console.log;
+const colorEnabled = !process.argv.includes("--nocolor");
 
 const descPath = "./site-description";
 const outDescPath = path.join(descPath, "out.txt");
@@ -10,7 +12,8 @@ const outPath = "./site";
 const statementRegex = /\$\<(.*?)\>\$/g;
 
 function err(message) {
-  println("Error:", message)
+  if(colorEnabled) println(chalk.redBright("⚠ Error:", message));
+  else println("⚠ Error:", message);
 }
 
 function assert(x, message) {
@@ -57,7 +60,7 @@ function updateSite() {
 
   // TODO: Delete left-over output directory contents.
 
-  println("Website updated.");
+  println("Updating website.");
 }
 
 function parseFile(data, evaluateTemplateCode, slots={}) {

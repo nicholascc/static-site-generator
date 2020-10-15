@@ -11,6 +11,7 @@
   "author": "Nicholas Charette (2020)",
   "license": "MIT",
   "dependencies": {
+    "chalk": "^4.1.0",
     "fs-extra": "^9.0.1",
     "http-server": "^0.12.3"
   }
