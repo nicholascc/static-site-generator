@@ -23,7 +23,7 @@ function assert(x, message) {
 }
 
 function updateSite() {
-  const statementList = fs.readFileSync(outDescPath)
+  fs.readFileSync(outDescPath)
     .toString('utf8')
     .split(/\r?\n/)
     .map(x => x.split('>').map(x => x.trim()))
@@ -34,9 +34,7 @@ function updateSite() {
         outPath: path.join(outPath, x[2]),
         evaluateTemplateCode: true ? x[1] === '$' : false
       }
-    });
-
-  statementList.forEach(function (statement) {
+    }).forEach(function (statement) {
       fs.readFile(statement.inPath, function (err, data) {
         if(err) {
           throw err;
