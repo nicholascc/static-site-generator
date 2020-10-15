@@ -10,16 +10,14 @@ const outPath = "./site";
 const statementRegex = /\$\<(.*?)\>\$/g;
 
 function err(message) {
-  println("Failed to update site due to an error.")
-  println(message);
-  println("Exiting...");
-  process.exit(1);
+  println("Error:", message)
 }
 
 function assert(x, message) {
   if(!x) {
     err(message);
   }
+  return !x;
 }
 
 function updateSite() {
@@ -74,28 +72,34 @@ function parseFile(data, evaluateTemplateCode, slots={}) {
     }
   }
 
-  // First we just need to look for if we're inheriting from a file and if so what we should fill in for the slots. We ignore template code within those slots, for now we just need to divide into 'fill' and 'inherit' statements
-  data.replace(statementRegex, (str, statementStr, startIndex) => {
-    const endIndex = str.length + startIndex;
+  // First we just need to look for if we're inheriting from a file and if so what we should fill in for the slots. We ignore template code within those slots, for now we just need to take the data from the fill commands and place it in fillDict, take the necessary data from the inherit command, and remove those commands from our data.
+  data.replace(statementRegex, (str, statementStr, stmtStartIndex) => {
+    const stmtEndIndex = str.length + stmtStartIndex;
     const statementArray = statementStr.split(' ');
     const command = statementArray[0];
     const args = statementArray.slice(1,str.length);
 
     switch(command) {
       case "inherit":
-        assert(args.length == 1, "One argument must be passed to 'inherit' command.");
-        assert(parentPath == '', "There cannot be more than one 'inherit' command in a file.");
+        if(assert(args.length == 1, "One argument must be passed to 'inherit' command.") ||
+           assert(parentPath == '', "There cannot be more than one 'inherit' command in a file.")) {
+             return "";
+           }
 
         parentPath = path.join(descPath, args[0]);
         return "";
 
       case "fill":
-        assert(parentPath != '', "A parent path must be provided through an 'inherit' command before a 'fill' command can be used.");
-        assert(args.length == 1, "One argument must be passed to 'fill' command.");
+        finishFill(stmtStartIndex);
+        fillStartIndex = stmtEndIndex;
 
-        finishFill(startIndex);
+        if(assert(parentPath != '', "A parent path must be provided through an 'inherit' command before a 'fill' command can be used.") ||
+           assert(args.length == 1, "One argument must be passed to 'fill' command.")) {
+             currentlyFilling = '';
+             return "";
+           }
+
         currentlyFilling = args[0];
-        fillStartIndex = endIndex;
         return "";
 
     }
@@ -105,24 +109,29 @@ function parseFile(data, evaluateTemplateCode, slots={}) {
   finishFill(data.length);
 
   if(parentPath) {
-    assert(fillDict, "At least one 'fill' command must be provided if an 'inherit' command is used.");
+    if(assert(fillDict, "At least one 'fill' command must be provided if an 'inherit' command is used.")) {
+      fillDict["."] = data; // @Incomplete: what's the best behavior when no 'fill' commands are provided? For now just using the entire input data as output.
+    }
   } else {
     fillDict["."] = data;
   }
 
   for(key in fillDict) {
-    fillDict[key] = fillDict[key].replace(statementRegex, (str, statementStr, startIndex) => {
+    fillDict[key] = fillDict[key].replace(statementRegex, (str, statementStr, stmtStartIndex) => {
       const statementArray = statementStr.split(' ');
       const command = statementArray[0];
       const args = statementArray.slice(1,str.length);
 
       switch(command) {
         case "slot":
-          assert(args.length == 1, "One argument must be passed to 'slot' command.");
-          assert(args[0] in slots, "Slot '" + args[0] + "' must be filled.");
+          if(assert(args.length == 1, "One argument must be passed to 'slot' command.") ||
+             assert(args[0] in slots, "Slot '" + args[0] + "' must be filled.")) {
+               return str; // @Incomplete: what's the best behavior when a slot command fails? For now just outputting the command itself as if it were raw text.
+             }
           return slots[args[0]];
         default:
           err("Unknown command " + command);
+          return str; // @Incomplete: what's the best behavior when a command is unknown? For now just outputting the command itself as if it were raw text.
       }
     });
   }
