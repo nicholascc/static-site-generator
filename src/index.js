@@ -24,6 +24,8 @@ function assert(x, message) {
 }
 
 function updateSite() {
+  println("Updating website...");
+
   fs.readFileSync(outDescPath)
     .toString('utf8')
     .split(/\r?\n/)
@@ -59,8 +61,6 @@ function updateSite() {
     });
 
   // TODO: Delete left-over output directory contents.
-
-  println("Updating website.");
 }
 
 function parseFile(data, evaluateTemplateCode, slots={}) {
