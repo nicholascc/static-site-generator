@@ -78,7 +78,7 @@ function parseFile(data, evaluateTemplateCode, vars={}) {
   // First we just need to look for if we're inheriting from a file and if so what we should fill in for the variables. We ignore template code within those variable values, for now we just need to take the data from the fill commands and place it in valueDict, take the necessary data from the inherit command, and remove those commands from our data.
   data.replace(statementRegex, (str, statementStr, stmtStartIndex) => {
     const stmtEndIndex = str.length + stmtStartIndex;
-    const statementArray = statementStr.split(' ');
+    const statementArray = statementStr.trim().split(' ');
     const command = statementArray[0];
     const args = statementArray.slice(1,str.length);
 
@@ -121,7 +121,7 @@ function parseFile(data, evaluateTemplateCode, vars={}) {
 
   for(key in valueDict) {
     valueDict[key] = valueDict[key].replace(statementRegex, (str, statementStr, stmtStartIndex) => {
-      const statementArray = statementStr.split(' ');
+      const statementArray = statementStr.trim().split(' ');
       const command = statementArray[0];
       const args = statementArray.slice(1,str.length);
 
