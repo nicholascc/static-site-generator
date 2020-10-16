@@ -123,16 +123,21 @@ function parseFile(data, evaluateTemplateCode, filename, vars={}) {
   for(key in valueDict) {
     valueDict[key] = valueDict[key].replace(statementRegex, (str, statementStr, stmtStartIndex) => {
       const statementArray = statementStr.trim().split(' ');
+
+      if(statementArray[0][0] === '-') {
+        let variable = statementArray[0].slice(1);
+
+        if(assert(variable.length > 0, "A '-' (denoting a variable) must be directly followed by a variable name.", filename) ||
+           assert(variable in vars, "Variable '" + variable + "' must be set.", filename)) {
+             return str; // @Incomplete: what's the best behavior when a variable is not found? For now just outputting the command itself as if it were raw text.
+           }
+        return vars[variable];
+      }
+
       const command = statementArray[0];
       const args = statementArray.slice(1,str.length);
 
       switch(command) {
-        case "slot":
-          if(assert(args.length == 1, "One argument must be passed to 'slot' command.", filename) ||
-             assert(args[0] in vars, "Variable '" + args[0] + "' must be set.", filename)) {
-               return str; // @Incomplete: what's the best behavior when a slot command fails? For now just outputting the command itself as if it were raw text.
-             }
-          return vars[args[0]];
         default:
           err("Unknown command " + command, filename);
           return str; // @Incomplete: what's the best behavior when a command is unknown? For now just outputting the command itself as if it were raw text.
