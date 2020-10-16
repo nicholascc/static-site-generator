@@ -54,7 +54,7 @@ function updateSite() {
             err(error2, statement.inPath);
           }
         } else {
-          //println("Skipping evaluating template code in file", statement.inPath);
+          fs.ensureDirSync(path.dirname(statement.outPath));
           fs.copyFile(statement.inPath, statement.outPath);
         }
 
