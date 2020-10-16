@@ -7,6 +7,7 @@ const colorEnabled = !process.argv.includes("--nocolor");
 
 const descPath = "./site-description";
 const outDescPath = path.join(descPath, "out.txt");
+const globalVariablesPath = path.join(descPath, "global.json");
 const outPath = "./site";
 
 const statementRegex = /\$\<(.*?)\>\$/g;
@@ -27,6 +28,8 @@ function assert(x, message, file="") {
 function updateSite() {
   println("Updating website...");
 
+  let globalVariables = JSON.parse(fs.readFileSync(globalVariablesPath).toString('utf8'));
+  
   fs.readFileSync(outDescPath)
     .toString('utf8')
     .split(/\r?\n/)
@@ -46,7 +49,7 @@ function updateSite() {
         data = data.toString('utf8');
 
         if(statement.evaluateTemplateCode) {
-          data = parseFile(data, statement, statement.inPath);
+          data = parseFile(data, statement, statement.inPath, globalVariables);
           try {
             fs.ensureDirSync(path.dirname(statement.outPath));
             fs.writeFileSync(statement.outPath, data);
@@ -145,7 +148,15 @@ function parseFile(data, evaluateTemplateCode, filename, vars={}) {
     });
   }
   if(parentPath) {
-    return parseFile(fs.readFileSync(parentPath).toString('utf8'), true, parentPath, valueDict);
+    const newVars = {};
+
+    Object.keys(vars)
+      .forEach(key => newVars[key] = vars[key]);
+
+    Object.keys(valueDict)
+      .forEach(key => newVars[key] = valueDict[key]);
+
+    return parseFile(fs.readFileSync(parentPath).toString('utf8'), true, parentPath, newVars);
   } else {
     return valueDict["."];
   }
