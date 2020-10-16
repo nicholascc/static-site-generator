@@ -63,19 +63,19 @@ function updateSite() {
   // TODO: Delete left-over output directory contents.
 }
 
-function parseFile(data, evaluateTemplateCode, slots={}) {
+function parseFile(data, evaluateTemplateCode, vars={}) {
   let parentPath = '';
   let currentlyFilling = '';
   let fillStartIndex = 0;
-  let fillDict = {};
+  let valueDict = {};
 
   function finishFill(fillEndIndex) {
     if(currentlyFilling) {
-      fillDict[currentlyFilling] = data.slice(fillStartIndex, fillEndIndex);
+      valueDict[currentlyFilling] = data.slice(fillStartIndex, fillEndIndex);
     }
   }
 
-  // First we just need to look for if we're inheriting from a file and if so what we should fill in for the slots. We ignore template code within those slots, for now we just need to take the data from the fill commands and place it in fillDict, take the necessary data from the inherit command, and remove those commands from our data.
+  // First we just need to look for if we're inheriting from a file and if so what we should fill in for the variables. We ignore template code within those variable values, for now we just need to take the data from the fill commands and place it in valueDict, take the necessary data from the inherit command, and remove those commands from our data.
   data.replace(statementRegex, (str, statementStr, stmtStartIndex) => {
     const stmtEndIndex = str.length + stmtStartIndex;
     const statementArray = statementStr.split(' ');
@@ -112,15 +112,15 @@ function parseFile(data, evaluateTemplateCode, slots={}) {
   finishFill(data.length);
 
   if(parentPath) {
-    if(assert(fillDict, "At least one 'fill' command must be provided if an 'inherit' command is used.")) {
-      fillDict["."] = data; // @Incomplete: what's the best behavior when no 'fill' commands are provided? For now just using the entire input data as output.
+    if(assert(valueDict, "At least one 'fill' command must be provided if an 'inherit' command is used.")) {
+      valueDict["."] = data; // @Incomplete: what's the best behavior when no 'fill' commands are provided? For now just using the entire input data as output.
     }
   } else {
-    fillDict["."] = data;
+    valueDict["."] = data;
   }
 
-  for(key in fillDict) {
-    fillDict[key] = fillDict[key].replace(statementRegex, (str, statementStr, stmtStartIndex) => {
+  for(key in valueDict) {
+    valueDict[key] = valueDict[key].replace(statementRegex, (str, statementStr, stmtStartIndex) => {
       const statementArray = statementStr.split(' ');
       const command = statementArray[0];
       const args = statementArray.slice(1,str.length);
@@ -128,10 +128,10 @@ function parseFile(data, evaluateTemplateCode, slots={}) {
       switch(command) {
         case "slot":
           if(assert(args.length == 1, "One argument must be passed to 'slot' command.") ||
-             assert(args[0] in slots, "Slot '" + args[0] + "' must be filled.")) {
+             assert(args[0] in vars, "Variable '" + args[0] + "' must be set.")) {
                return str; // @Incomplete: what's the best behavior when a slot command fails? For now just outputting the command itself as if it were raw text.
              }
-          return slots[args[0]];
+          return vars[args[0]];
         default:
           err("Unknown command " + command);
           return str; // @Incomplete: what's the best behavior when a command is unknown? For now just outputting the command itself as if it were raw text.
@@ -139,9 +139,9 @@ function parseFile(data, evaluateTemplateCode, slots={}) {
     });
   }
   if(parentPath) {
-    return parseFile(fs.readFileSync(parentPath).toString('utf8'), true, fillDict);
+    return parseFile(fs.readFileSync(parentPath).toString('utf8'), true, valueDict);
   } else {
-    return fillDict["."];
+    return valueDict["."];
   }
 
 }
