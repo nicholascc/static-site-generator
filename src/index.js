@@ -27,12 +27,13 @@ function assert(x, message, file="") {
 
 function updateSite() {
   println("Updating website...");
-
-  let globalVariables = JSON.parse(fs.readFileSync(globalVariablesPath).toString('utf8'));
   
+  let globalVariables = JSON.parse(fs.readFileSync(globalVariablesPath).toString('utf8'));
+
   fs.readFileSync(outDescPath)
     .toString('utf8')
     .split(/\r?\n/)
+    .filter(x => x[0] != '#')
     .map(x => x.split('>').map(x => x.trim()))
     .filter(x => x.length == 3)
     .map(x => {
