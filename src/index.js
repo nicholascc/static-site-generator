@@ -5,10 +5,10 @@ const chalk = require('chalk');
 const println = console.log;
 const colorEnabled = !process.argv.includes("--nocolor");
 
-const descPath = "./site-description";
+const descPath = "./desc";
 const outDescPath = path.join(descPath, "out.txt");
 const globalVariablesPath = path.join(descPath, "global.json");
-const outPath = "./site";
+const outPath = "./gen";
 
 const statementRegex = /\$\<(.*?)\>\$/g;
 
