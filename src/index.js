@@ -27,7 +27,7 @@ function assert(x, message, file="") {
 
 function updateSite() {
   println("Updating website...");
-  
+
   let globalVariables = JSON.parse(fs.readFileSync(globalVariablesPath).toString('utf8'));
 
   fs.readFileSync(outDescPath)
@@ -70,17 +70,16 @@ function updateSite() {
 
 function parseFile(data, evaluateTemplateCode, filename, vars={}) {
   let parentPath = '';
-  let currentlyFilling = '';
-  let fillStartIndex = 0;
-  let valueDict = {};
+  let currentlydefing = '';
+  let defStartIndex = 0;
 
-  function finishFill(fillEndIndex) {
-    if(currentlyFilling) {
-      valueDict[currentlyFilling] = data.slice(fillStartIndex, fillEndIndex);
+  function finishdef(defEndIndex) {
+    if(currentlydefing) {
+      vars[currentlydefing] = data.slice(defStartIndex, defEndIndex);
     }
   }
 
-  // First we just need to look for if we're inheriting from a file and if so what we should fill in for the variables. We ignore template code within those variable values, for now we just need to take the data from the fill commands and place it in valueDict, take the necessary data from the inherit command, and remove those commands from our data.
+  // First we just need to look for what we should fill in for the variables. We ignore template code within those variable values, for now we just need to take the data from the def commands and place it in vars, take the necessary data from the inherit command, and remove those commands from our data.
   data.replace(statementRegex, (str, statementStr, stmtStartIndex) => {
     const stmtEndIndex = str.length + stmtStartIndex;
     const statementArray = statementStr.trim().split(' ');
@@ -97,35 +96,30 @@ function parseFile(data, evaluateTemplateCode, filename, vars={}) {
         parentPath = path.join(descPath, args[0]);
         return "";
 
-      case "fill":
-        finishFill(stmtStartIndex);
-        fillStartIndex = stmtEndIndex;
+      case "def":
+        finishdef(stmtStartIndex);
+        defStartIndex = stmtEndIndex;
 
-        if(assert(parentPath != '', "A parent path must be provided through an 'inherit' command before a 'fill' command can be used.", filename) ||
-           assert(args.length == 1, "One argument must be passed to 'fill' command.", filename)) {
-             currentlyFilling = '';
+        if(assert(args.length == 1, "One argument must be passed to 'def' command.", filename)) {
+             currentlydefing = '';
              return "";
            }
 
-        currentlyFilling = args[0];
+        currentlydefing = args[0];
         return "";
 
     }
     return str;
   });
 
-  finishFill(data.length);
+  finishdef(data.length);
 
-  if(parentPath) {
-    if(assert(valueDict, "At least one 'fill' command must be provided if an 'inherit' command is used.", filename)) {
-      valueDict["."] = data; // @Incomplete: what's the best behavior when no 'fill' commands are provided? For now just using the entire input data as output.
-    }
-  } else {
-    valueDict["."] = data;
+  if(!parentPath) {
+    vars["."] = data;
   }
 
-  for(key in valueDict) {
-    valueDict[key] = valueDict[key].replace(statementRegex, (str, statementStr, stmtStartIndex) => {
+  for(key in vars) {
+    vars[key] = vars[key].replace(statementRegex, (str, statementStr, stmtStartIndex) => {
       const statementArray = statementStr.trim().split(' ');
 
       if(statementArray[0][0] === '-') {
@@ -149,17 +143,9 @@ function parseFile(data, evaluateTemplateCode, filename, vars={}) {
     });
   }
   if(parentPath) {
-    const newVars = {};
-
-    Object.keys(vars)
-      .forEach(key => newVars[key] = vars[key]);
-
-    Object.keys(valueDict)
-      .forEach(key => newVars[key] = valueDict[key]);
-
-    return parseFile(fs.readFileSync(parentPath).toString('utf8'), true, parentPath, newVars);
+    return parseFile(fs.readFileSync(parentPath).toString('utf8'), true, parentPath, vars);
   } else {
-    return valueDict["."];
+    return vars["."];
   }
 
 }
