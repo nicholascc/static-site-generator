@@ -10,8 +10,8 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-site/
-site-description/
+desc/
+gen/
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

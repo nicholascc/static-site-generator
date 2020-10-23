@@ -6,7 +6,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "node src/index.js",
     "watch": "node src/index.js watch",
-    "serve": "http-server site"
+    "serve": "http-server gen"
   },
   "author": "Nicholas Charette (2020)",
   "license": "MIT",
