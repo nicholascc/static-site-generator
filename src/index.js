@@ -100,7 +100,8 @@ function parseFile(data, evaluateTemplateCode, filename, vars={}) {
         finishdef(stmtStartIndex);
         defStartIndex = stmtEndIndex;
 
-        if(assert(args.length == 1, "One argument must be passed to 'def' command.", filename)) {
+        if(assert(args.length == 1, "One argument must be passed to 'def' command.", filename) ||
+           assert(!(args[0] in vars), "Variable " + args[0] + " already defined and cannot be redefined.")) {
              currentlydefing = '';
              return "";
            }
