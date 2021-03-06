@@ -3,7 +3,7 @@
 
 ---
 
-A simple template language for generating static websites using HTML, JS, and CSS. This is the engine I use to develop [my personal website](https://nicholascc.github.io).
+A simple template language for generating static websites using HTML, JS, and CSS.
 
 `static-site-generator`'s goal is to make development of static websites using raw HTML, CSS, and JS as frictionless as possible by reducing repetition.
 
